@@ -1,0 +1,10 @@
+@PACKAGE_INIT@
+
+# Package config for find_package(jaf). Re-resolves the public dependency
+# (Threads) then pulls in the exported targets (jaf::jaf).
+include(CMakeFindDependencyMacro)
+find_dependency(Threads)
+
+include("${CMAKE_CURRENT_LIST_DIR}/jafTargets.cmake")
+
+check_required_components(jaf)

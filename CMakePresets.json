@@ -1,0 +1,63 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": { "major": 3, "minor": 31, "patch": 0 },
+  "configurePresets": [
+    {
+      "name": "vs2022",
+      "displayName": "Visual Studio 2022 (x64)",
+      "description": "MSVC via the Visual Studio generator; no developer prompt required.",
+      "generator": "Visual Studio 17 2022",
+      "architecture": "x64",
+      "binaryDir": "${sourceDir}/build/vs2022",
+      "installDir": "${sourceDir}/install/vs2022"
+    },
+    {
+      "name": "ninja",
+      "displayName": "Ninja Multi-Config (MSVC)",
+      "description": "Fast iteration; run from an 'x64 Native Tools' developer prompt so cl/ml64 are on PATH.",
+      "generator": "Ninja Multi-Config",
+      "binaryDir": "${sourceDir}/build/ninja",
+      "installDir": "${sourceDir}/install/ninja",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "cl",
+        "CMAKE_CXX_COMPILER": "cl"
+      }
+    }
+  ],
+  "buildPresets": [
+    { "name": "vs2022-debug",   "displayName": "VS2022 Debug",   "configurePreset": "vs2022", "configuration": "Debug" },
+    { "name": "vs2022-release", "displayName": "VS2022 Release", "configurePreset": "vs2022", "configuration": "Release" },
+    { "name": "ninja-debug",    "displayName": "Ninja Debug",    "configurePreset": "ninja",  "configuration": "Debug" },
+    { "name": "ninja-release",  "displayName": "Ninja Release",  "configurePreset": "ninja",  "configuration": "Release" }
+  ],
+  "testPresets": [
+    {
+      "name": "vs2022-debug",
+      "displayName": "VS2022 Debug",
+      "configurePreset": "vs2022",
+      "configuration": "Debug",
+      "output": { "outputOnFailure": true }
+    },
+    {
+      "name": "vs2022-release",
+      "displayName": "VS2022 Release",
+      "configurePreset": "vs2022",
+      "configuration": "Release",
+      "output": { "outputOnFailure": true }
+    },
+    {
+      "name": "ninja-debug",
+      "displayName": "Ninja Debug",
+      "configurePreset": "ninja",
+      "configuration": "Debug",
+      "output": { "outputOnFailure": true }
+    },
+    {
+      "name": "ninja-release",
+      "displayName": "Ninja Release",
+      "configurePreset": "ninja",
+      "configuration": "Release",
+      "output": { "outputOnFailure": true }
+    }
+  ]
+}
