@@ -23,8 +23,8 @@ jaf::SchedulerOptions with_workers(unsigned n) {
 }
 
 // Write `content` to a fresh temp file; returns its path.
-std::string write_temp(const std::vector<std::byte>& content, const char* name) {
-    const auto path = (std::filesystem::temp_directory_path() / name).string();
+std::wstring write_temp(const std::vector<std::byte>& content, const wchar_t* name) {
+    const auto path = (std::filesystem::temp_directory_path() / name).wstring();
     std::ofstream f(path, std::ios::binary | std::ios::trunc);
     f.write(reinterpret_cast<const char*>(content.data()),
             static_cast<std::streamsize>(content.size()));
@@ -41,7 +41,7 @@ std::vector<std::byte> ramp(std::size_t n) {
 
 TEST(Io, ReadFileWakesFiberWithCorrectBytes) {
     const auto content = ramp(4096);
-    const auto path    = write_temp(content, "jaf_io_read.bin");
+    const auto path    = write_temp(content, L"jaf_io_read.bin");
 
     jaf::Scheduler sched(with_workers(2));
     std::vector<std::byte> buf(content.size());
@@ -65,7 +65,7 @@ TEST(Io, ReadFileWakesFiberWithCorrectBytes) {
 
 TEST(Io, WorkersProgressWhileReadsOutstanding) {
     const auto content = ramp(1 << 16);   // 64 KiB
-    const auto path    = write_temp(content, "jaf_io_concurrent.bin");
+    const auto path    = write_temp(content, L"jaf_io_concurrent.bin");
 
     jaf::Scheduler sched(with_workers(4));
     std::atomic<int> cpu_done{0};
@@ -113,7 +113,7 @@ TEST(Io, MissingFileSurfacesError) {
         jaf::Counter          c;
         jaf::io::IoResult     r;
         std::array<std::byte, 16> buf{};
-        jaf::io::read_file({"Z:\\no\\such\\jaf_missing.bin", std::span<std::byte>(buf), 0}, &c, &r);
+        jaf::io::read_file({L"Z:\\no\\such\\jaf_missing.bin", std::span<std::byte>(buf), 0}, &c, &r);
         jaf::wait_for_counter(&c, 0);
         status = r.status;
         err    = r.os_error;

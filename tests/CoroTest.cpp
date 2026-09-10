@@ -10,6 +10,7 @@
 #include <chrono>
 #include <coroutine>
 #include <cstdio>
+#include <filesystem>
 #include <fstream>
 #include <span>
 #include <stdexcept>
@@ -141,7 +142,7 @@ TEST(Coro, ManySuspendedShareSmallPool) {
 
 TEST(Coro, AwaitIoRead) {
     jaf::Scheduler sched(with_workers(2));
-    const char*    path = "jaf_coro_io_test.bin";
+    const wchar_t*    path = L"jaf_coro_io_test.bin";
     const std::string data = "hello coro io";
     {
         std::ofstream f(path, std::ios::binary);
@@ -168,5 +169,5 @@ TEST(Coro, AwaitIoRead) {
     EXPECT_EQ(status.load(), static_cast<int>(jaf::io::IoStatus::Ok));
     EXPECT_EQ(bytes.load(), data.size());
     EXPECT_EQ(std::string(buf.data(), data.size()), data);
-    std::remove(path);
+    std::filesystem::remove(path);
 }

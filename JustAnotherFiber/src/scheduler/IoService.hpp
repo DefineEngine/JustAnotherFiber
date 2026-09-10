@@ -3,7 +3,7 @@
 // scheduler/IoService.hpp -- owns one Windows I/O completion port and one
 // dedicated thread that drains it.
 
-#include <jaf/Io.hpp>   // jaf::io::ReadRequest / IoResult
+#include <jaf/Io.hpp>   // jaf::io::ReadRequest / WriteRequest / IoResult
 
 #include <thread>
 
@@ -25,6 +25,10 @@ public:
     /// @brief Post an overlapped read. On completion the I/O thread fills `out`
     ///        (if non-null) and calls jaf::signal(*on_complete).
     void PostRead(const io::ReadRequest& req, Counter* on_complete, io::IoResult* out);
+
+    /// @brief Post an overlapped whole-file write, creating or truncating the file.
+    ///        Completion handling is identical to PostRead's.
+    void PostWrite(const io::WriteRequest& req, Counter* on_complete, io::IoResult* out);
 
 private:
     void Loop();   // defined in Io.cpp; drains the completion port until shutdown

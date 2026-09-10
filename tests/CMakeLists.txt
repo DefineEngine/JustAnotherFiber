@@ -22,6 +22,7 @@ add_executable(jaf_tests
     PoolExhaustionTest.cpp
     ParallelForTest.cpp
     IoTest.cpp
+    IoWriteTest.cpp
     SyncTest.cpp
     CancellationTest.cpp
     SchedulerTest.cpp

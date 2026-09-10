@@ -59,6 +59,14 @@ struct SchedulerImpl;
 [[nodiscard]] unsigned ActiveWorkerCount() noexcept;
 } // namespace detail
 
+/// True when the caller is running inside a fiber/job.
+///
+/// The two wait families assert on opposite sides of this -- wait_for_counter aborts off a fiber,
+/// wait_for_counter_blocking aborts on one -- so a helper reachable from both a job and a plain
+/// thread (an asset read called from a cook fiber and from a headless tool's main) has no way to
+/// pick the right one without asking. Callable from any thread.
+[[nodiscard]] bool on_fiber() noexcept;
+
 /// The task scheduler running tasks on a worker thread pool.
 class Scheduler {
 public:
@@ -76,6 +84,18 @@ public:
 
     /// Run any jobs pinned to `tag` (via run_on) that are currently ready, on the CALLING thread.
     void pump(ThreadTag tag);
+
+    /// Drain `tag`'s ready jobs, then park until `counter` reaches `target` or `slice` elapses.
+    ///
+    /// The primitive a frame loop wants. Polling pump() in a tight timeout loop wakes the calling thread on a
+    /// fixed interval whether or not anything happened; this parks on the counter's real wakeup, so completion
+    /// is observed immediately and the slice only bounds how long a newly pinned job can sit unclaimed. A caller
+    /// that also has its own work per turn (an OS message pump) keeps looping on the false return.
+    ///
+    /// Returns true when the counter reached the target. MUST NOT be called from inside a fiber -- it blocks the
+    /// calling thread, which inside a fiber would deadlock the worker that fiber is running on.
+    [[nodiscard]] bool pump_until(ThreadTag tag, Counter& counter, std::int64_t target,
+                                  std::chrono::steady_clock::duration slice);
 
     /// A runtime occupancy snapshot; values are sampled without a global lock and are approximate.
     struct Stats {

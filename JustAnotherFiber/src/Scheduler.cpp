@@ -268,6 +268,10 @@ bool try_wait_for_counter(Counter* counter, std::int64_t target) noexcept {
     return detail::CounterTrySatisfied(*counter, target);
 }
 
+bool on_fiber() noexcept {
+    return detail::CurrentFiber() != nullptr;
+}
+
 bool wait_for_counter_until(Counter* counter, std::int64_t target,
                             std::chrono::steady_clock::time_point deadline) {
     detail::PooledFiber* self = detail::CurrentFiber();
@@ -468,6 +472,19 @@ void Scheduler::run(Task root) {
 
 void Scheduler::pump(ThreadTag tag) {
     m_impl->NamedWorker(tag)->DrainOnce();
+}
+
+bool Scheduler::pump_until(ThreadTag tag, Counter& counter, std::int64_t target,
+                           std::chrono::steady_clock::duration slice) {
+    JAF_ASSERT(detail::CurrentFiber() == nullptr,
+               "jaf::Scheduler::pump_until blocks the calling thread and must NOT be called from inside a "
+               "fiber (use jaf::wait_for_counter)");
+
+    // Drain first: a job pinned to this tag may be the very thing the counter is waiting on, and parking before
+    // running it would wait out the whole slice for work already sitting in the queue.
+    m_impl->NamedWorker(tag)->DrainOnce();
+
+    return wait_for_counter_blocking_until(&counter, target, std::chrono::steady_clock::now() + slice);
 }
 
 Scheduler::Stats Scheduler::stats() const noexcept {
