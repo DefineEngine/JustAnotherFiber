@@ -18,7 +18,7 @@ namespace detail { struct transfer_t; }
 
 namespace this_fiber {
 /// Suspend the currently running fiber, returning control to whoever resumed it.
-void yield() noexcept;
+JAF_API void yield() noexcept;
 } // namespace this_fiber
 
 /// A cooperatively scheduled execution context with its own stack.
@@ -39,7 +39,7 @@ public:
         Init(stack_size);
     }
 
-    ~Fiber();
+    JAF_API ~Fiber();
 
     // Fibers are pinned to memory; copying or moving is disabled to protect references to `this`.
     Fiber(const Fiber&)            = delete;
@@ -48,7 +48,7 @@ public:
     Fiber& operator=(Fiber&&)      = delete;
 
     /// Resume execution until the fiber yields or finishes, rethrowing any exception it threw.
-    void resume();
+    JAF_API void resume();
 
     /// Get the current state of the fiber.
     [[nodiscard]] State state() const noexcept { return m_state; }
@@ -58,7 +58,7 @@ public:
 
 private:
     /// Allocates the fiber stack and initializes the execution context.
-    void Init(std::size_t stack_size);
+    JAF_API void Init(std::size_t stack_size);
 
     /// Suspends the fiber and switches execution back to the resumer context.
     void DoYield() noexcept;

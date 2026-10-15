@@ -58,14 +58,14 @@ struct Waiter {
     void*        wake_ctx = nullptr;   ///< Context passed to `wake`.
 };
 
-void CounterAdd(Counter& c, std::int64_t n) noexcept;
-void CounterCompleteN(Counter& c, std::int64_t n) noexcept;
-void CounterCompleteOne(Counter& c) noexcept;
-bool CounterAddWaiter(Counter& c, Waiter* w) noexcept;
-bool CounterTryUnlinkWaiter(Counter& c, Waiter* w) noexcept;
-bool CounterTrySatisfied(Counter& c, std::int64_t target) noexcept;
-void CounterReset(Counter& c) noexcept;
-void CounterPoison(Counter& c) noexcept;
+JAF_API void CounterAdd(Counter& c, std::int64_t n) noexcept;
+JAF_API void CounterCompleteN(Counter& c, std::int64_t n) noexcept;
+JAF_API void CounterCompleteOne(Counter& c) noexcept;
+JAF_API bool CounterAddWaiter(Counter& c, Waiter* w) noexcept;
+JAF_API bool CounterTryUnlinkWaiter(Counter& c, Waiter* w) noexcept;
+JAF_API bool CounterTrySatisfied(Counter& c, std::int64_t target) noexcept;
+JAF_API void CounterReset(Counter& c) noexcept;
+JAF_API void CounterPoison(Counter& c) noexcept;
 
 } // namespace detail
 
@@ -74,7 +74,7 @@ class Counter {
 public:
     /// Construct a counter with an initial value.
     explicit Counter(std::int64_t initial = 0) noexcept : m_value(initial) {}
-    ~Counter();
+    JAF_API ~Counter();
 
     // Counters are pinned to memory; copying or moving is disabled.
     Counter(const Counter&)            = delete;
@@ -109,6 +109,6 @@ private:
 };
 
 /// Decrement `c` by `n` and wake any waiters it now satisfies. Safe to call from any thread.
-void signal(Counter& c, std::int64_t n = 1) noexcept;
+JAF_API void signal(Counter& c, std::int64_t n = 1) noexcept;
 
 } // namespace jaf

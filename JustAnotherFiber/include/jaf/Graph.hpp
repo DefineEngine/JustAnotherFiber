@@ -24,8 +24,8 @@ namespace detail { struct GraphImpl; }
 class Graph {
 public:
     /// Construct an empty graph.
-    Graph();
-    ~Graph();
+    JAF_API Graph();
+    JAF_API ~Graph();
 
     Graph(const Graph&)            = delete;
     Graph& operator=(const Graph&) = delete;
@@ -78,27 +78,30 @@ public:
     };
 
     /// Add a task to the graph as a new node.
-    Node Emplace(Task task);
+    JAF_API Node Emplace(Task task);
 
     /// Splice `sub` into this graph as a fenced region; returns {entry, exit}
     /// handles bracketing the spliced region. `sub` is consumed.
-    std::pair<Node, Node> Compose(Graph& sub);
+    JAF_API std::pair<Node, Node> Compose(Graph& sub);
 
     /// Number of nodes currently in the graph.
-    [[nodiscard]] std::size_t Size() const noexcept;
+    [[nodiscard]] JAF_API std::size_t Size() const noexcept;
 
 private:
     friend class Node;
-    friend void schedule(Graph&);
-    friend GraphRun schedule_async(Graph&);
+    // These friends are the first declarations of schedule / schedule_async, so they
+    // carry JAF_API; a later declaration cannot add dll linkage.
+    friend JAF_API void schedule(Graph&);
+    friend JAF_API GraphRun schedule_async(Graph&);
 
-    void AddEdge(std::uint32_t from, std::uint32_t to);
+    // Private, but called from the inline Node helpers below, so exported.
+    JAF_API void AddEdge(std::uint32_t from, std::uint32_t to);
 
-    void SetStack(std::uint32_t index, StackClass stack_class) noexcept;
+    JAF_API void SetStack(std::uint32_t index, StackClass stack_class) noexcept;
 
-    void SetPriority(std::uint32_t index, Priority p) noexcept;
+    JAF_API void SetPriority(std::uint32_t index, Priority p) noexcept;
 
-    void SetName(std::uint32_t index, const char* name) noexcept;
+    JAF_API void SetName(std::uint32_t index, const char* name) noexcept;
 
     std::unique_ptr<detail::GraphImpl> m_impl;
 };
@@ -132,25 +135,25 @@ inline Graph::Node Graph::Node::Name(const char* name) {
 /// Run an entire DAG to completion. Parks the calling fiber until the graph
 /// drains; must be called from inside a fiber/job. Rethrows the first node
 /// exception from Scheduler::run.
-void schedule(Graph& graph);
+JAF_API void schedule(Graph& graph);
 
 /// A handle to an in-flight asynchronous graph run.
 class GraphRun {
 public:
     GraphRun() = default;
-    GraphRun(GraphRun&& other) noexcept;
-    GraphRun& operator=(GraphRun&& other) noexcept;
+    JAF_API GraphRun(GraphRun&& other) noexcept;
+    JAF_API GraphRun& operator=(GraphRun&& other) noexcept;
     GraphRun(const GraphRun&)            = delete;
     GraphRun& operator=(const GraphRun&) = delete;
-    ~GraphRun();
+    JAF_API ~GraphRun();
 
     /// Join the run to completion, rethrowing the first node exception; consumes
     /// the handle. Parks if called from a fiber, blocks the OS thread otherwise.
-    void wait();
+    JAF_API void wait();
 
     /// Join with a deadline. Returns true if the graph completed (then rethrows
     /// any node exception and consumes the handle); false on timeout.
-    bool wait_until(std::chrono::steady_clock::time_point deadline);
+    JAF_API bool wait_until(std::chrono::steady_clock::time_point deadline);
 
     /// Join with a relative timeout. See wait_until.
     template <class Rep, class Period>
@@ -159,19 +162,19 @@ public:
     }
 
     /// Non-blocking check: true if the run has already drained (a hint).
-    [[nodiscard]] bool done() const noexcept;
+    [[nodiscard]] JAF_API bool done() const noexcept;
 
     /// True if this handle refers to a live run.
     [[nodiscard]] explicit operator bool() const noexcept { return m_impl != nullptr; }
 
     // ---- coroutine support (jaf/Coro.hpp) -- not for direct use ----
     /// The run's join counter, for a coroutine awaiter to register on.
-    [[nodiscard]] Counter& await_counter() const noexcept;
+    [[nodiscard]] JAF_API Counter& await_counter() const noexcept;
     /// Consume the handle and finalize an already-drained run.
-    void finalize_completed();
+    JAF_API void finalize_completed();
 
 private:
-    friend GraphRun schedule_async(Graph&);
+    friend JAF_API GraphRun schedule_async(Graph&);
     explicit GraphRun(detail::GraphImpl* impl) noexcept : m_impl(impl) {}
 
     detail::GraphImpl* m_impl = nullptr;
@@ -179,6 +182,6 @@ private:
 
 /// Submit a DAG and return immediately with a join handle. Callable from a fiber
 /// or a plain thread; join with GraphRun::wait().
-[[nodiscard]] GraphRun schedule_async(Graph& graph);
+[[nodiscard]] JAF_API GraphRun schedule_async(Graph& graph);
 
 } // namespace jaf

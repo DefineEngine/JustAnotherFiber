@@ -1,5 +1,6 @@
-# The jaf static library: L0 vendored context asm, L1 Fiber, L2 scheduler +
-# counters, L3 graph, plus the sync / io / coro layers. See docs/Architecture.md.
+# The jaf library (static, or a DLL with JAF_BUILD_SHARED): L0 vendored context asm,
+# L1 Fiber, L2 scheduler + counters, L3 graph, plus the sync / io / coro layers.
+# See docs/Architecture.md.
 
 set(JAF_ASM_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/context/asm)
 set(JAF_ASM_SOURCES
@@ -15,12 +16,16 @@ foreach(_asm IN LISTS JAF_ASM_SOURCES)
     endif()
 endforeach()
 
-# The vendored PROCs are declared `<name> PROC BOOST_CONTEXT_EXPORT FRAME`.
-# BOOST_CONTEXT_EXPORT is supplied on the assembler command line; a static lib
-# expands it to nothing (the PROC still exports the symbol).
+
 string(APPEND CMAKE_ASM_MASM_FLAGS " /DBOOST_CONTEXT_EXPORT=")
 
-add_library(jaf STATIC
+if(JAF_BUILD_SHARED)
+    set(JAF_LIBRARY_TYPE SHARED)
+else()
+    set(JAF_LIBRARY_TYPE STATIC)
+endif()
+
+add_library(jaf ${JAF_LIBRARY_TYPE}
     src/Fiber.cpp
     src/Counter.cpp
     src/Scheduler.cpp
@@ -35,6 +40,12 @@ add_library(jaf STATIC
 add_library(jaf::jaf ALIAS jaf)
 
 target_compile_features(jaf PUBLIC cxx_std_20)
+
+# JAF_API (Config.hpp): JAF_SHARED reaches every consumer through the target,
+# JAF_BUILDING only the library's own sources.
+if(JAF_BUILD_SHARED)
+    target_compile_definitions(jaf PUBLIC JAF_SHARED PRIVATE JAF_BUILDING)
+endif()
 
 # Build- vs install-interface split so both add_subdirectory and an installed
 # find_package(jaf) resolve the public headers. Private headers live under src/.

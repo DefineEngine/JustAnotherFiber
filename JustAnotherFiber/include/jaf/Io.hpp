@@ -53,12 +53,12 @@ struct IoResult {
 };
 
 /// Post an asynchronous read; bumps `*on_complete` by 1 immediately and returns without blocking.
-void read_file(const ReadRequest& req, Counter* on_complete, IoResult* out = nullptr);
+JAF_API void read_file(const ReadRequest& req, Counter* on_complete, IoResult* out = nullptr);
 
 /// Post an asynchronous whole-file write; bumps `*on_complete` by 1 immediately and returns
 /// without blocking. The counter is signalled on every path, including a synchronous open or
 /// issue failure, so a parked waiter can never be stranded.
-void write_file(const WriteRequest& req, Counter* on_complete, IoResult* out = nullptr);
+JAF_API void write_file(const WriteRequest& req, Counter* on_complete, IoResult* out = nullptr);
 
 } // namespace io
 } // namespace jaf

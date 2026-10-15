@@ -18,9 +18,9 @@ public:
     Mutex(const Mutex&)            = delete;
     Mutex& operator=(const Mutex&) = delete;
 
-    void lock();          ///< Fiber-only; parks if the lock is held.
-    bool try_lock();      ///< Never parks; true if acquired.
-    void unlock();        ///< Release; wakes one waiter. Legal from any thread.
+    JAF_API void lock();          ///< Fiber-only; parks if the lock is held.
+    JAF_API bool try_lock();      ///< Never parks; true if acquired.
+    JAF_API void unlock();        ///< Release; wakes one waiter. Legal from any thread.
 
 private:
     static bool LinkLock(detail::PooledFiber* self, void* ctx) noexcept;
@@ -38,9 +38,9 @@ public:
     ManualResetEvent(const ManualResetEvent&)            = delete;
     ManualResetEvent& operator=(const ManualResetEvent&) = delete;
 
-    void wait();    ///< Fiber-only; parks until set.
-    void signal();  ///< Set and wake all waiters. Legal from any thread.
-    void reset();   ///< Clear the set state.
+    JAF_API void wait();    ///< Fiber-only; parks until set.
+    JAF_API void signal();  ///< Set and wake all waiters. Legal from any thread.
+    JAF_API void reset();   ///< Clear the set state.
 
 private:
     static bool LinkWait(detail::PooledFiber* self, void* ctx) noexcept;
@@ -57,8 +57,8 @@ public:
     Event(const Event&)            = delete;
     Event& operator=(const Event&) = delete;
 
-    void wait();    ///< Fiber-only; parks until signalled, consuming the signal.
-    void signal();  ///< Wake one waiter, else leave a pending signal. Any thread.
+    JAF_API void wait();    ///< Fiber-only; parks until signalled, consuming the signal.
+    JAF_API void signal();  ///< Wake one waiter, else leave a pending signal. Any thread.
 
 private:
     static bool LinkWait(detail::PooledFiber* self, void* ctx) noexcept;
@@ -75,8 +75,8 @@ public:
     Semaphore(const Semaphore&)            = delete;
     Semaphore& operator=(const Semaphore&) = delete;
 
-    void acquire();                       ///< Fiber-only; parks if count == 0.
-    void release(std::int64_t n = 1);     ///< Return n permits. Legal from any thread.
+    JAF_API void acquire();                       ///< Fiber-only; parks if count == 0.
+    JAF_API void release(std::int64_t n = 1);     ///< Return n permits. Legal from any thread.
 
 private:
     static bool LinkAcquire(detail::PooledFiber* self, void* ctx) noexcept;

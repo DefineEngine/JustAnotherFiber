@@ -1,6 +1,7 @@
 #include <jaf/Scheduler.hpp>
 
 #include <jaf/Config.hpp>
+#include <jaf/Coro.hpp>
 #include <jaf/Counter.hpp>
 
 #include "scheduler/PooledFiber.hpp"
@@ -224,10 +225,10 @@ struct BlockingWaiter {
 
 void BlockingWake(void* ctx) noexcept {
     auto* b = static_cast<BlockingWaiter*>(ctx);
-    {
-        std::lock_guard<std::mutex> lk(b->m);
-        b->done = true;
-    }
+    // Notify under the lock: the waiter lives on the waiting thread's stack, and once it can observe `done` it may
+    // return and destroy `cv` before an unlocked notify_one gets to it.
+    std::lock_guard<std::mutex> lk(b->m);
+    b->done = true;
     b->cv.notify_one();
 }
 } // namespace

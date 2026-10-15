@@ -31,7 +31,7 @@ private:
 
 namespace this_job {
 /// True if the currently-running job's CancellationToken is cancelled.
-[[nodiscard]] bool cancelled() noexcept;
+[[nodiscard]] JAF_API bool cancelled() noexcept;
 } // namespace this_job
 
 } // namespace jaf

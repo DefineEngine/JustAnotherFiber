@@ -56,7 +56,7 @@ struct SchedulerOptions {
 
 namespace detail {
 struct SchedulerImpl;
-[[nodiscard]] unsigned ActiveWorkerCount() noexcept;
+[[nodiscard]] JAF_API unsigned ActiveWorkerCount() noexcept;
 } // namespace detail
 
 /// True when the caller is running inside a fiber/job.
@@ -65,14 +65,14 @@ struct SchedulerImpl;
 /// wait_for_counter_blocking aborts on one -- so a helper reachable from both a job and a plain
 /// thread (an asset read called from a cook fiber and from a headless tool's main) has no way to
 /// pick the right one without asking. Callable from any thread.
-[[nodiscard]] bool on_fiber() noexcept;
+[[nodiscard]] JAF_API bool on_fiber() noexcept;
 
 /// The task scheduler running tasks on a worker thread pool.
 class Scheduler {
 public:
     /// Construct the scheduler and start its worker pool.
-    explicit Scheduler(SchedulerOptions options = {});
-    ~Scheduler();
+    JAF_API explicit Scheduler(SchedulerOptions options = {});
+    JAF_API ~Scheduler();
 
     Scheduler(const Scheduler&)            = delete;
     Scheduler& operator=(const Scheduler&) = delete;
@@ -80,10 +80,10 @@ public:
     Scheduler& operator=(Scheduler&&)      = delete;
 
     /// Submit a root task and block until the entire task graph completes; rethrows the first job exception.
-    void run(Task root);
+    JAF_API void run(Task root);
 
     /// Run any jobs pinned to `tag` (via run_on) that are currently ready, on the CALLING thread.
-    void pump(ThreadTag tag);
+    JAF_API void pump(ThreadTag tag);
 
     /// Drain `tag`'s ready jobs, then park until `counter` reaches `target` or `slice` elapses.
     ///
@@ -94,8 +94,8 @@ public:
     ///
     /// Returns true when the counter reached the target. MUST NOT be called from inside a fiber -- it blocks the
     /// calling thread, which inside a fiber would deadlock the worker that fiber is running on.
-    [[nodiscard]] bool pump_until(ThreadTag tag, Counter& counter, std::int64_t target,
-                                  std::chrono::steady_clock::duration slice);
+    [[nodiscard]] JAF_API bool pump_until(ThreadTag tag, Counter& counter, std::int64_t target,
+                                          std::chrono::steady_clock::duration slice);
 
     /// A runtime occupancy snapshot; values are sampled without a global lock and are approximate.
     struct Stats {
@@ -108,44 +108,44 @@ public:
         std::uint64_t jobs_run      = 0;   ///< Total jobs completed (all workers).
         std::uint64_t steals        = 0;   ///< Total successful steals (all workers).
     };
-    [[nodiscard]] Stats stats() const noexcept;
+    [[nodiscard]] JAF_API Stats stats() const noexcept;
 
 private:
     std::unique_ptr<detail::SchedulerImpl> m_impl;
 };
 
 /// Submit a batch of jobs; if `counter` is non-null it is bumped by jobs.size() and each job decrements it.
-void run(std::span<Task> jobs, Counter* counter, StackClass stack_class = StackClass::Small,
-         Priority prio = Priority::Normal, const char* name = nullptr);
+JAF_API void run(std::span<Task> jobs, Counter* counter, StackClass stack_class = StackClass::Small,
+                 Priority prio = Priority::Normal, const char* name = nullptr);
 
 /// As run(), but each job observes `token`; a cancelled job is skipped yet still decrements `counter`.
-void run(std::span<Task> jobs, Counter* counter, const CancellationToken& token,
-         StackClass stack_class = StackClass::Small, Priority prio = Priority::Normal);
+JAF_API void run(std::span<Task> jobs, Counter* counter, const CancellationToken& token,
+                 StackClass stack_class = StackClass::Small, Priority prio = Priority::Normal);
 
 /// Submit jobs pinned to a named thread; they run only when that thread calls Scheduler::pump(tag).
-void run_on(ThreadTag tag, std::span<Task> jobs, Counter* counter,
-            StackClass stack_class = StackClass::Small, Priority prio = Priority::Normal,
-            const char* name = nullptr);
+JAF_API void run_on(ThreadTag tag, std::span<Task> jobs, Counter* counter,
+                    StackClass stack_class = StackClass::Small, Priority prio = Priority::Normal,
+                    const char* name = nullptr);
 
 /// Park the current fiber until `counter` reaches `target`; MUST be called from inside a fiber/job.
-void wait_for_counter(Counter* counter, std::int64_t target = 0);
+JAF_API void wait_for_counter(Counter* counter, std::int64_t target = 0);
 
 /// Like wait_for_counter, but returns false if any job that decremented this counter threw.
-[[nodiscard]] bool wait_for_counter_checked(Counter* counter, std::int64_t target = 0);
+[[nodiscard]] JAF_API bool wait_for_counter_checked(Counter* counter, std::int64_t target = 0);
 
 /// Non-blocking poll; returns true iff the counter has already reached `target`. Callable from any thread.
-[[nodiscard]] bool try_wait_for_counter(Counter* counter, std::int64_t target = 0) noexcept;
+[[nodiscard]] JAF_API bool try_wait_for_counter(Counter* counter, std::int64_t target = 0) noexcept;
 
 /// Park the current fiber until `counter` reaches `target` OR `deadline` passes; MUST be called from a fiber/job.
-[[nodiscard]] bool wait_for_counter_until(Counter* counter, std::int64_t target,
-                                          std::chrono::steady_clock::time_point deadline);
+[[nodiscard]] JAF_API bool wait_for_counter_until(Counter* counter, std::int64_t target,
+                                                  std::chrono::steady_clock::time_point deadline);
 
 /// Block the CALLING (non-fiber) thread until `counter` reaches `target`.
-bool wait_for_counter_blocking(Counter* counter, std::int64_t target = 0);
+JAF_API bool wait_for_counter_blocking(Counter* counter, std::int64_t target = 0);
 
 /// As wait_for_counter_blocking, but with a deadline; returns true if the target was reached, false on timeout.
-[[nodiscard]] bool wait_for_counter_blocking_until(Counter* counter, std::int64_t target,
-                                                   std::chrono::steady_clock::time_point deadline);
+[[nodiscard]] JAF_API bool wait_for_counter_blocking_until(Counter* counter, std::int64_t target,
+                                                           std::chrono::steady_clock::time_point deadline);
 
 /// Run fn(i) for each i in [begin, end), split into chunks of `grain`, each a job, then join; MUST be called from a fiber/job.
 template <class Index, class Fn>

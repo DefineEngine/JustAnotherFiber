@@ -40,6 +40,18 @@
     #define JAF_NOINLINE     __attribute__((noinline))
 #endif
 
+// Linkage of the public API. A DLL build (JAF_BUILD_SHARED) defines JAF_SHARED for
+// every consumer and JAF_BUILDING for the library itself; a static build defines neither.
+#if defined(JAF_SHARED)
+    #if defined(JAF_BUILDING)
+        #define JAF_API __declspec(dllexport)
+    #else
+        #define JAF_API __declspec(dllimport)
+    #endif
+#else
+    #define JAF_API
+#endif
+
 // CPU spin-pause hint. Arch-gated (not compiler-gated) so clang-cl gets it too.
 #if JAF_ARCH_X64
     #include <immintrin.h>

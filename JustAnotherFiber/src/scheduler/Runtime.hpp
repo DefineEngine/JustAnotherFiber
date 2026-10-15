@@ -3,6 +3,8 @@
 // scheduler/Runtime.hpp -- cross-TU runtime accessors: the thread-locals, the
 // active-scheduler pointer, and helpers the counter/trampoline code needs.
 
+#include <jaf/Config.hpp>
+
 #include <exception>
 
 namespace jaf::detail {
@@ -32,7 +34,7 @@ using ParkLinkFn = bool (*)(PooledFiber*, void*) noexcept;
 void ParkCurrentFiber(ParkLinkFn link, void* ctx) noexcept;
 
 // Record the first exception escaping a job (first-wins). Implemented in
-// Scheduler.cpp; surfaced from Scheduler::run.
-void CaptureCurrentException(std::exception_ptr e) noexcept;
+// Scheduler.cpp; surfaced from Scheduler::run. Exported: Coro.hpp declares it too.
+JAF_API void CaptureCurrentException(std::exception_ptr e) noexcept;
 
 } // namespace jaf::detail

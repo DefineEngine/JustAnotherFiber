@@ -20,9 +20,9 @@ namespace jaf {
 
 namespace detail {
 
-void CoroInflightBegin() noexcept;
-void CoroInflightEnd() noexcept;
-void CaptureCurrentException(std::exception_ptr) noexcept;
+JAF_API void CoroInflightBegin() noexcept;
+JAF_API void CoroInflightEnd() noexcept;
+JAF_API void CaptureCurrentException(std::exception_ptr) noexcept;
 
 inline void ScheduleResume(std::coroutine_handle<> h) {
     Task t{[h]() { std::coroutine_handle<>(h).resume(); }};
